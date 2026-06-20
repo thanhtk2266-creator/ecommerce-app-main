@@ -1,10 +1,6 @@
-version: '3.8'
-
 services:
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
+    image: ghcr.io/thanhtk2266-creator/ecommerce-app-main/backend:latest
     container_name: ecommerce-backend
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
@@ -13,8 +9,7 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      db:
-        condition: service_healthy  # ✅ Đợi DB healthy mới start
+      - db
     restart: always
     networks:
       - ecommerce
@@ -23,16 +18,9 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    # ✅ Thêm volumes để mount code (cho development)
-    volumes:
-      - ./backend:/app  # Nếu muốn hot-reload
 
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-      args:  # ✅ Thêm args để build với API URL
-        - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:5000}
+    image: ghcr.io/thanhtk2266-creator/ecommerce-app-main/frontend:latest
     container_name: ecommerce-frontend
     environment:
       - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:5000}
@@ -58,21 +46,14 @@ services:
     restart: always
     networks:
       - ecommerce
-    healthcheck:
-      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${DB_SA_PASSWORD}" -Q "SELECT 1"
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   nginx:
     image: nginx:alpine
     container_name: ecommerce-nginx
     ports:
       - "80:80"
-      # - "443:443"  # ✅ Comment lại vì chưa có SSL
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      # - ./ssl:/etc/nginx/ssl:ro  # ✅ Comment lại
     depends_on:
       - backend
       - frontend

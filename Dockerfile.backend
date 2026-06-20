@@ -2,9 +2,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 
-# ✅ Copy solution file nếu có
-# COPY *.sln ./
-
 # Copy project file and restore dependencies
 COPY backend/*.csproj backend/
 WORKDIR /src/backend

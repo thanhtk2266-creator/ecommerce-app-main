@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   backend:
-    image: ghcr.io/nguyenhanam657/ecommerce-app-main/backend:latest  # Use lowercase
+    image: ghcr.io/thanhtk2266-creator/ecommerce-app-main/backend:latest  # Use lowercase
     container_name: ecommerce-backend
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
@@ -22,7 +22,7 @@ services:
       retries: 3
 
   frontend:
-    image: ghcr.io/nguyenhanam657/ecommerce-app-main/frontend:latest  # Use lowercase
+    image: ghcr.io/nthanhtk2266-creator/ecommerce-app-main/frontend:latest  # Use lowercase
     container_name: ecommerce-frontend
     environment:
       - REACT_APP_API_URL=${REACT_APP_API_URL:-/api}

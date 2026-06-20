@@ -3,8 +3,8 @@ version: '3.8'
 services:
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.backend
     container_name: ecommerce-backend
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
@@ -13,7 +13,8 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy  # ✅ Đợi DB healthy mới start
     restart: always
     networks:
       - ecommerce
@@ -22,14 +23,19 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    # ✅ Thêm volumes để mount code (cho development)
+    volumes:
+      - ./backend:/app  # Nếu muốn hot-reload
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:  # ✅ Thêm args để build với API URL
+        - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:5000}
     container_name: ecommerce-frontend
     environment:
-      - REACT_APP_API_URL=${REACT_APP_API_URL:-/api}
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:5000}
     ports:
       - "3000:3000"
     depends_on:
@@ -63,10 +69,10 @@ services:
     container_name: ecommerce-nginx
     ports:
       - "80:80"
-      - "443:443"
+      # - "443:443"  # ✅ Comment lại vì chưa có SSL
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
+      # - ./ssl:/etc/nginx/ssl:ro  # ✅ Comment lại
     depends_on:
       - backend
       - frontend

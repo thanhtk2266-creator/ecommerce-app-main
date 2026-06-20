@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - develop
   pull_request:
     branches:
       - main
@@ -49,22 +48,22 @@ jobs:
         with:
           context: .
           file: ./Dockerfile.backend
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ steps.repo.outputs.owner_lower }}/${{ steps.repo.outputs.repo_lower }}/backend:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ steps.repo.outputs.owner_lower }}/${{ steps.repo.outputs.repo_lower }}/backend:latest
+            ${{ env.REGISTRY }}/${{ steps.repo.outputs.owner_lower }}/${{ steps.repo.outputs.repo_lower }}/backend:${{ github.sha }}
 
       - name: Build and push frontend image
         uses: docker/build-push-action@v4
         with:
           context: .
           file: ./Dockerfile.frontend
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          push: true
           build-args: |
             REACT_APP_API_URL=/api
           tags: |
-            ${{ env.REGISTRY }}/${{ steps.repo.outputs.owner_lower }}/${{ steps.repo.outputs.repo_lower }}/frontend:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ steps.repo.outputs.owner_lower }}/${{ steps.repo.outputs.repo_lower }}/frontend:latest
+            ${{ env.REGISTRY }}/${{ steps.repo.outputs.owner_lower }}/${{ steps.repo.outputs.repo_lower }}/frontend:${{ github.sha }}
 
   deploy:
     needs: build
@@ -72,44 +71,43 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - name: Convert repository name to lowercase
-        id: repo
-        run: |
-          OWNER_LOWER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')
-          REPO_LOWER=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')
-          echo "owner_lower=$OWNER_LOWER" >> $GITHUB_OUTPUT
-          echo "repo_lower=$REPO_LOWER" >> $GITHUB_OUTPUT
-
-      - name: Checkout code
-        uses: actions/checkout@v3
-
       - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_PORT }}
           script: |
-            cd /home/ec2-user/ecommerce-app
-
+            cd /home/ubuntu/ecommerce-app-main
+            
             # Pull latest code
-            git fetch origin main
-            git reset --hard origin/main
-
-            # Copy .env if not exists
+            git pull origin main
+            
+            # Create .env if not exists
             if [ ! -f .env ]; then
-              cp .env.example .env
-              echo "⚠️ .env file created from template. Please update with production values!"
+              cat > .env << EOF
+            DB_SA_PASSWORD=YourStrong@Password123
+            DB_CONNECTION_STRING=Server=db,1433;Database=OnlineShopdb;User Id=sa;Password=YourStrong@Password123;TrustServerCertificate=True
+            JWT_SECRET=ecommerce_jwt_secret_key_2026_secure_32chars
+            REACT_APP_API_URL=http://${{ secrets.EC2_HOST }}
+            ASPNETCORE_ENVIRONMENT=Production
+            EOF
+              echo "✅ .env file created"
             fi
-
-            # Update docker-compose.yml with lowercase repository names
-            sed -i 's/NguyenHaNam657/nguyenhanam657/g' docker-compose.yml
-
-            # Build and start containers
-            docker-compose pull
-            docker-compose up -d
-
+            
+            # Stop old containers
+            docker compose down -v || true
+            
+            # Pull latest images
+            docker pull ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/backend:latest
+            docker pull ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/frontend:latest
+            
+            # Start new containers
+            docker compose up -d
+            
             # Show status
-            echo "✅ Deployment completed"
-            docker-compose ps
+            docker compose ps
+            
+            echo "✅ Deployment completed successfully!"
+            echo "🌐 Visit: http://${{ secrets.EC2_HOST }}"

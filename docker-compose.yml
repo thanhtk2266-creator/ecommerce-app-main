@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   backend:
-    image: ghcr.io/thanhtk2266-creator/ecommerce-app-main/backend:latest  # Use lowercase
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: ecommerce-backend
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
@@ -22,7 +24,9 @@ services:
       retries: 3
 
   frontend:
-    image: ghcr.io/nthanhtk2266-creator/ecommerce-app-main/frontend:latest  # Use lowercase
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: ecommerce-frontend
     environment:
       - REACT_APP_API_URL=${REACT_APP_API_URL:-/api}
@@ -59,10 +63,10 @@ services:
     container_name: ecommerce-nginx
     ports:
       - "80:80"
-      - "443:443"  # Add HTTPS if needed
+      - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro  # Optional: SSL certificates
+      - ./ssl:/etc/nginx/ssl:ro
     depends_on:
       - backend
       - frontend

@@ -1,0 +1,28 @@
+# Build stage
+FROM node:18-alpine AS build
+WORKDIR /app
+
+# Accept build arguments
+ARG REACT_APP_API_URL=http://localhost:5000
+ENV REACT_APP_API_URL=${REACT_APP_API_URL}
+
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+
+COPY frontend/ .
+RUN npm run build && \
+    find build -type f -name "*.js" -exec sed -i 's|//api|/api|g' {} +
+
+# Runtime stage
+FROM node:18-alpine
+WORKDIR /app
+
+# Install serve to serve static files
+RUN npm install -g serve
+
+# Copy built application
+COPY --from=build /app/build ./build
+
+EXPOSE 3000
+
+CMD ["serve", "-s", "build", "-l", "3000"]

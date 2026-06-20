@@ -1,0 +1,115 @@
+name: Build and Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  REGISTRY_USERNAME: ${{ github.actor }}
+  REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Convert repository name to lowercase
+        id: repo
+        run: |
+          OWNER_LOWER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')
+          REPO_LOWER=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')
+          echo "owner_lower=$OWNER_LOWER" >> $GITHUB_OUTPUT
+          echo "repo_lower=$REPO_LOWER" >> $GITHUB_OUTPUT
+          echo "Repository will be tagged as: $OWNER_LOWER/$REPO_LOWER"
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ env.REGISTRY_USERNAME }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile.backend
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.repo.outputs.owner_lower }}/${{ steps.repo.outputs.repo_lower }}/backend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ steps.repo.outputs.owner_lower }}/${{ steps.repo.outputs.repo_lower }}/backend:latest
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile.frontend
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          build-args: |
+            REACT_APP_API_URL=/api
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.repo.outputs.owner_lower }}/${{ steps.repo.outputs.repo_lower }}/frontend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ steps.repo.outputs.owner_lower }}/${{ steps.repo.outputs.repo_lower }}/frontend:latest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Convert repository name to lowercase
+        id: repo
+        run: |
+          OWNER_LOWER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')
+          REPO_LOWER=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')
+          echo "owner_lower=$OWNER_LOWER" >> $GITHUB_OUTPUT
+          echo "repo_lower=$REPO_LOWER" >> $GITHUB_OUTPUT
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT }}
+          script: |
+            cd /home/ec2-user/ecommerce-app
+
+            # Pull latest code
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Copy .env if not exists
+            if [ ! -f .env ]; then
+              cp .env.example .env
+              echo "⚠️ .env file created from template. Please update with production values!"
+            fi
+
+            # Update docker-compose.yml with lowercase repository names
+            sed -i 's/NguyenHaNam657/nguyenhanam657/g' docker-compose.yml
+
+            # Build and start containers
+            docker-compose pull
+            docker-compose up -d
+
+            # Show status
+            echo "✅ Deployment completed"
+            docker-compose ps

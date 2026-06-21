@@ -8,6 +8,21 @@ export const useProduct = () => {
   const error = useSelector((state) => state.product.error);
   const status = useSelector((state) => state.product.status);
 
+  // 🔥 Thêm function refreshProduct
+  const refreshProduct = async (productId) => {
+    try {
+      const response = await fetch(`/api/product/${productId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch product');
+      }
+      const freshProduct = await response.json();
+      return freshProduct;
+    } catch (error) {
+      console.error('Error refreshing product:', error);
+      return null;
+    }
+  };
+
   const fetchProductsHandler = () => {
     dispatch(fetchProducts());
   };
@@ -15,20 +30,24 @@ export const useProduct = () => {
   const createProductHandler = (product) => {
     dispatch(createProduct(product))
     .then(() => {
-      alert("Product has been added.")
+      alert("Product has been added.");
+      dispatch(fetchProducts());
     })
   };
 
   const updateExistingProductHandler = (productId, product) => {
-    dispatch(updateExistingProduct( productId, product ));
+    dispatch(updateExistingProduct(productId, product))
+    .then(() => {
+      dispatch(fetchProducts());
+    });
   };
 
   const removeProductHandler = (productId) => {
-    console.log("hey")
     if (window.confirm("Are you sure you want to delete this product?")) {
       dispatch(removeProduct(productId))
         .then(() => {
           alert("Product has been deleted.");
+          dispatch(fetchProducts());
         });
     }
   };
@@ -38,9 +57,10 @@ export const useProduct = () => {
     createProduct: createProductHandler,
     updateExistingProduct: updateExistingProductHandler,
     removeProduct: removeProductHandler,
+    refreshProduct, // 👈 THÊM DÒNG NÀY
     products,
     loading,
     error,
     status,
-    };
+  };
 };

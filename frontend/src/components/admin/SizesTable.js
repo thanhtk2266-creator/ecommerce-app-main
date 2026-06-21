@@ -10,7 +10,6 @@ function ProductSizes({ product }) {
   const [newSize, setNewSize] = useState({ size: '', price: '', quantity: '' });
   const [editedSize, setEditedSize] = useState({});
 
-  // Refresh dữ liệu sau khi thay đổi size
   const handleAddSize = async () => {
     if (!newSize.size || !newSize.price || !newSize.quantity) {
       alert('Vui lòng điền đầy đủ thông tin size!');

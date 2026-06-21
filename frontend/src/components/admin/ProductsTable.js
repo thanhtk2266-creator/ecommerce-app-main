@@ -2,14 +2,13 @@ import React, { useEffect, useState } from 'react';
 import ProductSizes from './SizesTable';
 import { useProduct } from '../../utils/hooks/useProduct';
 import { useStock } from '../../utils/hooks/useUtil';
-import productApi from '../../utils/api/productApi';
 
 function Products() {
   const { products, fetchProducts, createProduct, updateExistingProduct, removeProduct, refreshProduct } = useProduct();
   const [localProduct, setLocalProduct] = useState({});
   const getStock = useStock();
 
-  // 🆕 Khi chọn sản phẩm, fetch dữ liệu mới từ API
+  // 🔥 Khi chọn sản phẩm, fetch dữ liệu mới từ API
   const handleProductSelect = async (product) => {
     try {
       const freshProduct = await refreshProduct(product.productID);
@@ -28,11 +27,9 @@ function Products() {
     fetchProducts();
   }, []);
 
-  // 🆕 Refresh lại danh sách sau khi update/delete/create
   const handleUpdate = async (productData) => {
     await updateExistingProduct(productData);
     await fetchProducts();
-    // Refresh lại localProduct với dữ liệu mới
     if (localProduct?.productID) {
       const fresh = await refreshProduct(localProduct.productID);
       if (fresh) setLocalProduct(fresh);
@@ -87,8 +84,7 @@ function Products() {
                 <div className='product-panel-img'>
                   <img src={localProduct?.imageURL} alt="" key={localProduct.imageURL} />
                 </div>
-              )
-              }
+              )}
               <div className="product-panel-info">
                 { localProduct?.productID && ( <label className='label-small'>
                   ID

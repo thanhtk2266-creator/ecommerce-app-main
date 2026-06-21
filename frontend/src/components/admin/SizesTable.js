@@ -2,18 +2,44 @@ import React, { useState } from 'react';
 import { icons } from '../../assets/icons/icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useSize } from '../../utils/hooks/useSize';
+import { useProduct } from '../../utils/hooks/useProduct';
 
 function ProductSizes({ product }) {
   const { addSize, updateSize, deleteSize } = useSize();
+  const { refreshProduct } = useProduct();
   const [newSize, setNewSize] = useState({ size: '', price: '', quantity: '' });
-  const [editedSize, setEditedSize] = useState({}); 
-  
+  const [editedSize, setEditedSize] = useState({});
+
+  // Refresh dữ liệu sau khi thay đổi size
+  const handleAddSize = async () => {
+    if (!newSize.size || !newSize.price || !newSize.quantity) {
+      alert('Vui lòng điền đầy đủ thông tin size!');
+      return;
+    }
+    await addSize({ ...newSize, productId: product.productID });
+    await refreshProduct(product.productID);
+    setNewSize({ size: '', price: '', quantity: '' });
+  };
+
+  const handleUpdateSize = async (sizeId, sizeData) => {
+    await updateSize({ sizeId, size: sizeData });
+    await refreshProduct(product.productID);
+    setEditedSize({});
+  };
+
+  const handleDeleteSize = async (sizeId) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa size này?')) {
+      await deleteSize(sizeId);
+      await refreshProduct(product.productID);
+    }
+  };
+
   const handleInputChange = (e, index) => {
     const { name, value } = e.target;
     const updatedSize = { ...product.sizes[index], [name]: value };
     setEditedSize(updatedSize);
-  };    
-  
+  };
+
   return (
     <>
       <table className='size-table'>
@@ -56,7 +82,7 @@ function ProductSizes({ product }) {
               }/>
             </td>
             <td>
-              <button onClick={() => addSize({ ...newSize, productId: product.productID })}>ADD</button>
+              <button onClick={handleAddSize}>ADD</button>
             </td>
           </tr>
           {product?.sizes.map((size, index) => (
@@ -79,10 +105,10 @@ function ProductSizes({ product }) {
                 />
               </td>
               <td>
-                <button onClick={(e) => deleteSize(size.productSizeID, e)}>
+                <button onClick={() => handleDeleteSize(size.productSizeID)}>
                   <FontAwesomeIcon icon={icons.trash}></FontAwesomeIcon>
                 </button>
-                <button onClick={() => updateSize({ sizeId: size.productSizeID, size: editedSize})}>
+                <button onClick={() => handleUpdateSize(size.productSizeID, editedSize)}>
                   <FontAwesomeIcon icon={icons.save}></FontAwesomeIcon>
                 </button>
               </td>

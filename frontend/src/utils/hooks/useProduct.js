@@ -33,15 +33,14 @@ export const useProduct = () => {
     }
   };
 
-  return { 
-    fetchProducts: fetchProductsHandler, 
-    createProduct: createProductHandler, 
-    updateExistingProduct: updateExistingProductHandler, 
-    removeProduct: removeProductHandler, 
-    products, 
-    loading, 
+  return {
+    fetchProducts: fetchProductsHandler,
+    createProduct: createProductHandler,
+    updateExistingProduct: updateExistingProductHandler,
+    removeProduct: removeProductHandler,
+    products,
+    loading,
     error,
-    status,  
+    status,
     };
 };
-

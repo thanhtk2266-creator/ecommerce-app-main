@@ -38,7 +38,7 @@
         {product && (
           <div className='flex container'>
             <div className='product-detail-img flex-2'>
-              <img src={product.imageURL} alt="" />
+              <img src={product.imageURL} alt="" key={product.imageURL}/>
             </div>
             <div className='product-detail-about flex-1'>
               <h2>{product.brand}</h2>

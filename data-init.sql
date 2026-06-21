@@ -11,7 +11,7 @@ VALUES
     (5, 'New Balance 574', 'New Balance', 'The New Balance 574 is a classic sneaker known for its comfort and versatility.', 'https://res.cloudinary.com/dfnhctsnk/image/upload/v1782030827/anh-new-blance_trrnaa.png'),
     (6, 'Puma Suede Classic', 'Puma', 'The Puma Suede Classic is a legendary sneaker known for its sleek design and comfort.', 'https://product.hstatic.net/1000284478/product/01_374915_1_b622d15c43ee4f2e85180cbb5b850fd3_large.jpg');
 
--- Thêm dữ liệu vào bảng PRODUCT_SIZE cho sản phẩm Nike Air Max 270
+-- Thêm dữ liệu vào bảng PRODUCT_SIZE cho sản phẩm Nike Air Max 270 00
 INSERT INTO PRODUCT_SIZE (ProductSizeID, Size, Price, Quantity, ProductID)
 VALUES 
     (1, 36, 3109000, 10, 1),

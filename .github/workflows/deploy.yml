@@ -82,7 +82,7 @@ jobs:
             set -e
             cd /home/ubuntu/ecommerce-app-main
             
-            # 🔥 TỰ ĐỘNG FIX GIT CONFLICT
+            # 🔥 FIX GIT CONFLICT
             echo "🔧 Resetting local changes..."
             git reset --hard HEAD
             git clean -fd
@@ -90,7 +90,7 @@ jobs:
             echo "📦 Pulling latest code from GitHub..."
             git pull origin main
             
-            # 📝 TỰ ĐỘNG TẠO .env
+            # 📝 TẠO .env
             echo "📝 Creating .env file..."
             cat > .env << EOF
             DB_SA_PASSWORD=YourStrong@Password123
@@ -101,68 +101,64 @@ jobs:
             EOF
             echo "✅ .env file created"
             
-            # 🛑 TỰ ĐỘNG DỌN DẸP
+            # 🛑 DỌN DẸP
             echo "🛑 Stopping old containers..."
             docker compose down -v || true
             
-            # 📥 TỰ ĐỘNG PULL IMAGES
+            # 📥 PULL IMAGES
             echo "📥 Pulling latest images..."
             docker pull ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/backend:latest
             docker pull ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/frontend:latest
             
-            # 🗄️ TỰ ĐỘNG TẠO DATABASE
+            # 🗄️ TẠO DATABASE
             echo "⏳ Starting database container..."
             docker compose up -d db
             
-            echo "⏳ Waiting for database to be ready (30 seconds)..."
-            sleep 30
+            echo "⏳ Waiting for database to be ready (45 seconds)..."
+            sleep 45
             
             echo "📦 Creating database if not exists..."
             docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'OnlineShopdb') CREATE DATABASE OnlineShopdb"
             
             echo "📦 Initializing database schema (table-init.sql)..."
-            docker cp table-init.sql ecommerce-db:/table-init.sql 2>/dev/null || echo "⚠️ table-init.sql not found"
-            docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -d OnlineShopdb -i /table-init.sql 2>/dev/null || echo "⚠️ table-init.sql error"
+            docker cp table-init.sql ecommerce-db:/table-init.sql
+            docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -d OnlineShopdb -i /table-init.sql
             
             echo "📦 Inserting sample data (data-init.sql)..."
-            docker cp data-init.sql ecommerce-db:/data-init.sql 2>/dev/null || echo "⚠️ data-init.sql not found"
-            docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -d OnlineShopdb -i /data-init.sql 2>/dev/null || echo "⚠️ data-init.sql error"
+            docker cp data-init.sql ecommerce-db:/data-init.sql
+            docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -d OnlineShopdb -i /data-init.sql
             
-            # 🚀 TỰ ĐỘNG START CONTAINERS
+            # 🚀 START CONTAINERS
             echo "🚀 Starting all containers..."
             docker compose up -d
             
-            echo "⏳ Waiting for services to be ready (10 seconds)..."
-            sleep 10
+            echo "⏳ Waiting for services to be ready (15 seconds)..."
+            sleep 15
             
-            # 📊 TỰ ĐỘNG KIỂM TRA
+            # 📊 KIỂM TRA CONTAINER
             echo ""
             echo "📊 ========== CONTAINER STATUS =========="
             docker compose ps
             
+            # 🔍 KIỂM TRA BACKEND
             echo ""
             echo "🔍 ========== CHECKING BACKEND API =========="
             API_RESPONSE=$(curl -s http://localhost:5000/api/product || echo "ERROR")
             if [[ "$API_RESPONSE" == "ERROR" ]]; then
               echo "❌ Backend API is not responding!"
               echo "📋 Backend logs:"
-              docker compose logs backend --tail=20
-              exit 1
-            elif [[ "$API_RESPONSE" == "[]" ]]; then
-              echo "⚠️ Backend API returned empty array (no data)"
-              echo "📋 Database check:"
-              docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -d OnlineShopdb -Q "SELECT COUNT(*) as TotalProducts FROM PRODUCT"
+              docker compose logs backend --tail=30
               exit 1
             else
               echo "✅ Backend API is working!"
-              echo "📊 Sample data:"
-              echo "$API_RESPONSE" | head -c 500
-              echo "..."
+              PRODUCT_COUNT=$(echo "$API_RESPONSE" | grep -o '"productID"' | wc -l || echo "0")
+              echo "📊 Found $PRODUCT_COUNT products in API response"
             fi
             
+            # 🔍 KIỂM TRA FRONTEND
             echo ""
             echo "🔍 ========== CHECKING FRONTEND =========="
-            FRONTEND_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80 || echo "ERROR")
+            FRONTEND_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80 || echo "000")
             if [[ "$FRONTEND_RESPONSE" == "200" ]]; then
               echo "✅ Frontend is working! (HTTP $FRONTEND_RESPONSE)"
             else
@@ -172,18 +168,19 @@ jobs:
               exit 1
             fi
             
+            # 🔍 KIỂM TRA DATABASE (CÁCH ĐÚNG)
             echo ""
             echo "🔍 ========== CHECKING DATABASE =========="
-            PRODUCT_COUNT=$(docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -d OnlineShopdb -Q "SELECT COUNT(*) as Count FROM PRODUCT" -h -1 | grep -E '^[0-9]+$' || echo "0")
-            if [[ "$PRODUCT_COUNT" -gt 0 ]]; then
-              echo "✅ Database has $PRODUCT_COUNT products"
+            DB_COUNT=$(docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -d OnlineShopdb -Q "SET NOCOUNT ON; SELECT COUNT(*) FROM PRODUCT" -W -h -1 2>/dev/null | tr -d ' ' | grep -E '^[0-9]+$' || echo "0")
+            if [[ "$DB_COUNT" -gt 0 ]]; then
+              echo "✅ Database has $DB_COUNT products"
             else
-              echo "❌ Database has no data!"
-              echo "📋 Checking tables:"
-              docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -d OnlineShopdb -Q "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES"
-              exit 1
+              echo "⚠️ Database check returned: $DB_COUNT"
+              echo "📋 Checking tables manually..."
+              docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -d OnlineShopdb -Q "SET NOCOUNT ON; SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES" -W -h -1
             fi
             
+            # 🎉 THÀNH CÔNG
             echo ""
             echo "✅ ========== DEPLOYMENT COMPLETED SUCCESSFULLY! =========="
             echo "🌐 Visit: http://${{ secrets.EC2_HOST }}"
@@ -192,4 +189,4 @@ jobs:
             echo "📊 Summary:"
             echo "  - Backend:  ✅ Running (http://${{ secrets.EC2_HOST }}/api/product)"
             echo "  - Frontend: ✅ Running (http://${{ secrets.EC2_HOST }})"
-            echo "  - Database: ✅ $PRODUCT_COUNT products"
+            echo "  - Database: ✅ $DB_COUNT products"

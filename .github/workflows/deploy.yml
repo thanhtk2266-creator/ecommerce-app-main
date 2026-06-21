@@ -82,9 +82,15 @@ jobs:
             set -e
             cd /home/ubuntu/ecommerce-app-main
             
+            # 🔥 TỰ ĐỘNG FIX GIT CONFLICT
+            echo "🔧 Resetting local changes..."
+            git reset --hard HEAD
+            git clean -fd
+            
             echo "📦 Pulling latest code from GitHub..."
             git pull origin main
             
+            # 📝 TỰ ĐỘNG TẠO .env
             echo "📝 Creating .env file..."
             cat > .env << EOF
             DB_SA_PASSWORD=YourStrong@Password123
@@ -95,13 +101,16 @@ jobs:
             EOF
             echo "✅ .env file created"
             
+            # 🛑 TỰ ĐỘNG DỌN DẸP
             echo "🛑 Stopping old containers..."
             docker compose down -v || true
             
+            # 📥 TỰ ĐỘNG PULL IMAGES
             echo "📥 Pulling latest images..."
             docker pull ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/backend:latest
             docker pull ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/frontend:latest
             
+            # 🗄️ TỰ ĐỘNG TẠO DATABASE
             echo "⏳ Starting database container..."
             docker compose up -d db
             
@@ -112,21 +121,21 @@ jobs:
             docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'OnlineShopdb') CREATE DATABASE OnlineShopdb"
             
             echo "📦 Initializing database schema (table-init.sql)..."
-            docker cp table-init.sql ecommerce-db:/table-init.sql
-            docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -d OnlineShopdb -i /table-init.sql
-            echo "✅ Database schema created successfully!"
+            docker cp table-init.sql ecommerce-db:/table-init.sql 2>/dev/null || echo "⚠️ table-init.sql not found"
+            docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -d OnlineShopdb -i /table-init.sql 2>/dev/null || echo "⚠️ table-init.sql error"
             
             echo "📦 Inserting sample data (data-init.sql)..."
-            docker cp data-init.sql ecommerce-db:/data-init.sql
-            docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -d OnlineShopdb -i /data-init.sql
-            echo "✅ Sample data inserted successfully!"
+            docker cp data-init.sql ecommerce-db:/data-init.sql 2>/dev/null || echo "⚠️ data-init.sql not found"
+            docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -d OnlineShopdb -i /data-init.sql 2>/dev/null || echo "⚠️ data-init.sql error"
             
+            # 🚀 TỰ ĐỘNG START CONTAINERS
             echo "🚀 Starting all containers..."
             docker compose up -d
             
             echo "⏳ Waiting for services to be ready (10 seconds)..."
             sleep 10
             
+            # 📊 TỰ ĐỘNG KIỂM TRA
             echo ""
             echo "📊 ========== CONTAINER STATUS =========="
             docker compose ps

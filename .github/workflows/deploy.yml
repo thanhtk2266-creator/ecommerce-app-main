@@ -103,11 +103,35 @@ jobs:
             docker pull ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/backend:latest
             docker pull ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/frontend:latest
             
-            # Start new containers
+            # Start database container first
+            echo "⏳ Starting database container..."
+            docker compose up -d db
+            
+            # Wait for database to be ready
+            echo "⏳ Waiting for database to be ready (30 seconds)..."
+            sleep 30
+            
+            # Run database initialization scripts
+            echo "📦 Initializing database schema..."
+            docker cp table-init.sql ecommerce-db:/table-init.sql 2>/dev/null || echo "⚠️ table-init.sql not found, skipping..."
+            docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -d OnlineShopdb -i /table-init.sql 2>/dev/null || echo "⚠️ table-init.sql error (database may already exist)"
+            
+            echo "📦 Inserting sample data..."
+            docker cp data-init.sql ecommerce-db:/data-init.sql 2>/dev/null || echo "⚠️ data-init.sql not found, skipping..."
+            docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -d OnlineShopdb -i /data-init.sql 2>/dev/null || echo "⚠️ data-init.sql error (data may already exist)"
+            
+            # Start all containers
+            echo "🚀 Starting all containers..."
             docker compose up -d
             
             # Show status
+            echo "📊 Container status:"
             docker compose ps
+            
+            # Check API
+            echo "🔍 Checking API..."
+            sleep 5
+            curl -s http://localhost:5000/api/product || echo "⚠️ API not ready yet"
             
             echo "✅ Deployment completed successfully!"
             echo "🌐 Visit: http://${{ secrets.EC2_HOST }}"

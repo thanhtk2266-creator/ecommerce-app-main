@@ -12,7 +12,7 @@ function Home() {
       <div className='hero-about'>
         <div>
           <p>LIMITED OFFER</p>
-          <h3> SAVE 20%</h3>
+          <h3> SAVE 30%</h3>
           <p>USE DISCOUNT</p>
           <button>10O FF</button>
         </div>

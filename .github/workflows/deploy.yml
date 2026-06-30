@@ -88,7 +88,8 @@ jobs:
             git clean -fd
             
             echo "📦 Pulling latest code from GitHub..."
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
             
             # 📝 TẠO .env
             echo "📝 Creating .env file..."

@@ -6,10 +6,8 @@ INSERT INTO PRODUCT (ProductID, Name, Brand, Description, ImageURL)
 VALUES 
     (1, 'Nike Air Max 270', 'Nike', 'The Nike Air Max 270 combines elements from the Air Max family and modern styling for a sneaker that''s sure to turn heads.', 'https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/38321ec6-8c92-488d-924d-02dd07eaeceb/air-max-270-older-shoes-tnlrnr.png'),
     (2, 'Adidas Ultra Boost', 'Adidas', 'The Adidas Ultra Boost is a popular running shoe known for its comfort and style.', 'https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/f042b05ad1bf4d51b7dfaf1600054038_9366/Ultraboost_1.0_Shoes_White_HQ4202_01_standard.jpg'),
-    (3, 'Converse Chuck Taylor All Star', 'Converse', 'The Converse Chuck Taylor All Star is a classic sneaker that''s been a staple for decades.', 'https://res.cloudinary.com/dfnhctsnk/image/upload/v1782030658/anh-converse_s4usrv.png'),
-    (4, 'Vans Old Skool', 'Vans', 'The Vans Old Skool is a timeless skate shoe with a durable canvas and suede upper.', 'https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/4896bd57f0894845b5c0ae8300eec549_9366/Grand_Court_Cloudfoam_Comfort_Shoes_White_GW9195_01_standard.jpg'),
-    (5, 'New Balance 574', 'New Balance', 'The New Balance 574 is a classic sneaker known for its comfort and versatility.', 'https://res.cloudinary.com/dfnhctsnk/image/upload/v1782030827/anh-new-blance_trrnaa.png'),
-    (6, 'Puma Suede Classic', 'Puma', 'The Puma Suede Classic is a legendary sneaker known for its sleek design and comfort.', 'https://product.hstatic.net/1000284478/product/01_374915_1_b622d15c43ee4f2e85180cbb5b850fd3_large.jpg');
+    (3, 'Vans Old Skool', 'Vans', 'The Vans Old Skool is a timeless skate shoe with a durable canvas and suede upper.', 'https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/4896bd57f0894845b5c0ae8300eec549_9366/Grand_Court_Cloudfoam_Comfort_Shoes_White_GW9195_01_standard.jpg'),
+    (4, 'Puma Suede Classic', 'Puma', 'The Puma Suede Classic is a legendary sneaker known for its sleek design and comfort.', 'https://product.hstatic.net/1000284478/product/01_374915_1_b622d15c43ee4f2e85180cbb5b850fd3_large.jpg');
 
 -- Thêm dữ liệu vào bảng PRODUCT_SIZE cho sản phẩm Nike Air Max 270 00
 INSERT INTO PRODUCT_SIZE (ProductSizeID, Size, Price, Quantity, ProductID)

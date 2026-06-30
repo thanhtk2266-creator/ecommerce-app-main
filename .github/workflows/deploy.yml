@@ -115,7 +115,7 @@ jobs:
             docker compose up -d db
             
             echo "⏳ Waiting for database to be ready (45 seconds)..."
-            sleep 45
+            sleep 30
             
             echo "🗑️ Dropping existing database if exists..."
             docker compose exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "YourStrong@Password123" -Q "IF EXISTS (SELECT name FROM sys.databases WHERE name = 'OnlineShopdb') DROP DATABASE OnlineShopdb"
@@ -138,7 +138,7 @@ jobs:
             docker compose up -d
             
             echo "⏳ Waiting for services to be ready (15 seconds)..."
-            sleep 15
+            sleep 10
             
             # 📊 KIỂM TRA CONTAINER
             echo ""

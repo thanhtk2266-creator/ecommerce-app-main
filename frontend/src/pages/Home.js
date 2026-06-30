@@ -12,9 +12,9 @@ function Home() {
       <div className='hero-about'>
         <div>
           <p>LIMITED OFFER</p>
-          <h3> SAVE 10%</h3>
+          <h3> SAVE 20%</h3>
           <p>USE DISCOUNT</p>
-          <button>10OFF</button>
+          <button>10O FF</button>
         </div>
       </div>  
       <div className='container'>

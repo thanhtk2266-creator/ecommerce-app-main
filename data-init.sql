@@ -33,18 +33,6 @@ VALUES
     (15, 42, 4500000, 10, 2),
     (16, 43, 4500000, 10, 2);
 
--- Thêm dữ liệu vào bảng PRODUCT_SIZE cho sản phẩm Converse Chuck Taylor All Star
-INSERT INTO PRODUCT_SIZE (ProductSizeID, Size, Price, Quantity, ProductID)
-VALUES 
-    (17, 36, 1015000, 10, 3),
-    (18, 37, 1015000, 10, 3),
-    (19, 38, 1015000, 10, 3),
-    (20, 39, 1015000, 10, 3),
-    (21, 40, 1015000, 10, 3),
-    (22, 41, 1015000, 10, 3),
-    (23, 42, 1015000, 10, 3),
-    (24, 43, 1015000, 10, 3);
-
 -- Thêm dữ liệu vào bảng PRODUCT_SIZE cho sản phẩm Vans Old Skool
 INSERT INTO PRODUCT_SIZE (ProductSizeID, Size, Price, Quantity, ProductID)
 VALUES 
@@ -57,17 +45,6 @@ VALUES
     (31, 42, 2000000, 10, 4),
     (32, 43, 2000000, 10, 4);
 
--- Thêm dữ liệu vào bảng PRODUCT_SIZE cho sản phẩm New Balance 574
-INSERT INTO PRODUCT_SIZE (ProductSizeID, Size, Price, Quantity, ProductID)
-VALUES 
-    (33, 36, 1535400, 10, 5),
-    (34, 37, 1535400, 10, 5),
-    (35, 38, 1535400, 10, 5),
-    (36, 39, 1535400, 10, 5),
-    (37, 40, 1535400, 10, 5),
-    (38, 41, 1535400, 10, 5),
-    (39, 42, 1535400, 10, 5),
-    (40, 43, 1535400, 10, 5);
 
 -- Thêm dữ liệu vào bảng PRODUCT_SIZE cho sản phẩm Puma Suede Classic
 INSERT INTO PRODUCT_SIZE (ProductSizeID, Size, Price, Quantity, ProductID)

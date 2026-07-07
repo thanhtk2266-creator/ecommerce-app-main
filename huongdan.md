@@ -1,5 +1,5 @@
 #####
-
+toilabomay
 chạy ec2 => lấy ip ec2 => thay vào code cũng như là action github
 ssh -i "D:\dien-toan-dam-may\ecommerce-key.pem" ubuntu@<IP>
 
